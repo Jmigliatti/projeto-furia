@@ -242,14 +242,16 @@ def login():
         if not all([email, password]):
             return jsonify({'error': 'E-mail e senha são obrigatórios'}), 400
         
-        connection = get_db_connection()
-        if not connection:
-            return jsonify({'error': 'Erro ao conectar ao banco de dados'}), 500
+        connection = None
+        cursor = None  # Inicializa a variável
         
         try:
+            connection = get_db_connection()
+            if not connection:
+                return jsonify({'error': 'Erro ao conectar ao banco de dados'}), 500
+            
             cursor = connection.cursor(dictionary=True)
             
-            # MODIFIQUE A QUERY PARA INCLUIR O NOME COMPLETO
             cursor.execute("""
                 SELECT id, username, password, email 
                 FROM users 
@@ -260,14 +262,12 @@ def login():
             if not user or not verify_password(user['password'], password):
                 return jsonify({'error': 'E-mail ou senha inválidos'}), 401
             
-            # Atualizar último login
             cursor.execute(
                 "UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = %s",
                 (user['id'],)
             )
             connection.commit()
             
-            # Armazenar informações do usuário na sessão
             session['user_id'] = user['id']
             session['username'] = user['username']
             
@@ -282,13 +282,13 @@ def login():
                 }
             }), 200
             
-        except Error as e:
-            logger.error(f"Erro ao fazer login: {e}")
-            return jsonify({'error': 'Erro ao fazer login'}), 500
+        except Exception as e:
+            logger.error(f"Erro durante o login: {e}")
+            return jsonify({'error': 'Erro durante o processamento do login'}), 500
         finally:
-            if connection and not connection.closed:
-                cursor.close()
-                connection.close()
+            if cursor: cursor.close()
+            if connection and not connection.closed: connection.close()
+            
     except Exception as e:
         logger.error(f"Erro inesperado no login: {e}")
         return jsonify({'error': 'Erro interno do servidor'}), 500
