@@ -23,7 +23,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Configurações do MySQL (usando apenas variáveis de ambiente)
 MYSQL_CONFIG = {
-    'host': os.getenv('MYSQLHOST'),  # Nome da variável do Railway
+    'host': 'mysql',  # Nome da variável do Railway
     'user': os.getenv('MYSQLUSER'),  # 'root' no Railway
     'password': os.getenv('MYSQLPASSWORD'),  # Senha automática do Railway
     'database': os.getenv('MYSQLDATABASE'),  # 'railway' por padrão
