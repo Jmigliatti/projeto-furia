@@ -60,11 +60,7 @@ def init_db():
             cursor = connection.cursor()
             logger.debug("Inicializando banco de dados...")
             
-            # Criar banco de dados se não existir
-            cursor.execute("CREATE DATABASE IF NOT EXISTS furia_chat")
-            cursor.execute("USE furia_chat")
-            
-            # Criar tabelas
+            # Não crie o banco manualmente (usará o do Railway)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS users (
                     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -73,7 +69,8 @@ def init_db():
                     password VARCHAR(255) NOT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_login TIMESTAMP NULL,
-                    is_active BOOLEAN DEFAULT TRUE
+                    is_active BOOLEAN DEFAULT TRUE,
+                    status VARCHAR(20) DEFAULT 'offline'  # Adicionei o campo status
                 )
             """)
             
@@ -89,10 +86,7 @@ def init_db():
             """)
             
             connection.commit()
-            logger.debug("Banco de dados inicializado com sucesso")
-            
-            cursor.close()
-            connection.close()
+            logger.debug("Tabelas criadas com sucesso")
     except Error as e:
         logger.error(f"Erro ao inicializar banco de dados: {e}")
 
@@ -365,8 +359,10 @@ def handle_message(data):
         emit('new_message', message_data, broadcast=True)
 
 if __name__ == '__main__':
-
-    eventlet.monkey_patch()
+    # Inicializa o banco de dados antes de iniciar o app
+    init_db()
     
-    socketio.run(app, host='0.0.0.0', port=int(os.getenv("PORT", 5000)))
+    # Usa a porta do Railway (ou 5000 localmente)
+    port = int(os.getenv("PORT", 5000))
+    socketio.run(app, host='0.0.0.0', port=port)
 
