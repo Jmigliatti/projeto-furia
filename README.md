@@ -2,7 +2,7 @@
 
 Este projeto foi desenvolvido como parte do **Challenge #1: Experiência Conversacional** do processo seletivo da **FURIA Tech**.
 
-🔗 Repositório oficial: https://github.com/Jmigliatti/telegram-bot-furia
+🔗 Repositório oficial: https://github.com/Jmigliatti/telegram-bot-furia  
 🔗 Link da Aplicação: https://projeto-furia.onrender.com
 
 ---
