@@ -21,18 +21,15 @@ app = Flask(__name__, static_folder="static", template_folder="templates")
 app.config['SECRET_KEY'] = 'furia_chat_secret_key'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# Configurações do MySQL
+# Configurações do MySQL (usando apenas variáveis de ambiente)
 MYSQL_CONFIG = {
-    'host': os.getenv('MYSQL_HOST', 'mysql'),
-    'user': os.getenv('MYSQL_USER', 'root'),
-    'password': os.getenv('MYSQL_PASSWORD', '123456'),
-    'database': os.getenv('MYSQL_DATABASE', 'furia_chat'),
-    'port': 3306,
+    'host': os.getenv('MYSQLHOST'),  # Nome da variável do Railway
+    'user': os.getenv('MYSQLUSER'),  # 'root' no Railway
+    'password': os.getenv('MYSQLPASSWORD'),  # Senha automática do Railway
+    'database': os.getenv('MYSQLDATABASE'),  # 'railway' por padrão
+    'port': int(os.getenv('MYSQLPORT', '3306')),  # Porta do Railway
     'auth_plugin': 'mysql_native_password',
-    'use_pure': True,
-    'connect_timeout': 30,
-    'retries': 3,
-    'delay': 5
+    'connect_timeout': 30
 }
 
 def get_db_connection():
