@@ -35,7 +35,7 @@ Você pode testar a aplicação localmente com Docker:
 ```bash
 git clone https://github.com/Jmigliatti/telegram-bot-furia.git
 cd telegram-bot-furia
-docker compose up --buil´´´
+docker compose up --build```
 
 ## 📸 Galeria
 
