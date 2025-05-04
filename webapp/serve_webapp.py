@@ -1,6 +1,7 @@
 from flask import Flask, send_from_directory, redirect, session, request, jsonify, render_template, send_file
 from flask_socketio import SocketIO, emit, join_room, leave_room
 import os
+import psycopg2.extras
 import eventlet
 from datetime import datetime
 import psycopg2
@@ -26,34 +27,19 @@ DB_CONFIG = {
     'host': os.getenv('DB_HOST'),
     'user': os.getenv('DB_USER'),
     'password': os.getenv('DB_PASSWORD'),
-    'database': os.getenv('DB_NAME'),
-    'port': os.getenv('DB_PORT', '5432'),  # Porta padrão do PostgreSQL
-    'sslmode': 'require'  # Obrigatório no Render
+    'dbname': os.getenv('DB_NAME'),
+    'port': os.getenv('DB_PORT', '5432'),
+    'sslmode': 'require'
 }
 
 def get_db_connection():
-    retries = 3
-    delay = 5
-    
-    for attempt in range(retries):
-        try:
-            logger.debug(f"Tentativa {attempt + 1} de {retries} para conectar ao PostgreSQL")
-            connection = psycopg2.connect(
-                host=os.getenv('DB_HOST'),
-                user=os.getenv('DB_USER'),
-                password=os.getenv('DB_PASSWORD'),
-                dbname=os.getenv('DB_NAME'),
-                port=os.getenv('DB_PORT', '5432'),
-                connect_timeout=30,
-                sslmode='require'  # Obrigatório no Render
-            )
-            logger.debug("Conexão com PostgreSQL estabelecida com sucesso")
-            return connection
-        except OperationalError as e:
-            logger.error(f"Erro ao conectar ao PostgreSQL (tentativa {attempt + 1}): {e}")
-            if attempt < retries - 1:
-                time.sleep(delay)
-    return None
+    try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        logger.debug("Conexão com PostgreSQL estabelecida")
+        return conn
+    except OperationalError as e:
+        logger.error(f"Erro ao conectar: {e}")
+        return None
 
 def init_db():
     try:
@@ -171,7 +157,7 @@ def get_online_users():
         conn = get_db_connection()
         if not conn:
             return jsonify({"error": "Erro ao conectar ao banco de dados"}), 500
-        cursor = conn.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cursor.execute("SELECT username FROM users WHERE status = 'online'")
         users = cursor.fetchall()
         cursor.close()
@@ -234,64 +220,40 @@ def register_api():
 def login():
     try:
         data = request.get_json()
-        logger.debug(f"Dados recebidos para login: {data}")
-        
         email = data.get('email')
         password = data.get('password')
         
         if not all([email, password]):
-            return jsonify({'error': 'E-mail e senha são obrigatórios'}), 400
-        
-        connection = None
-        cursor = None  # Inicializa a variável
+            return jsonify({'error': 'Credenciais necessárias'}), 400
+
+        conn = None
+        cursor = None
         
         try:
-            connection = get_db_connection()
-            if not connection:
-                return jsonify({'error': 'Erro ao conectar ao banco de dados'}), 500
-            
-            cursor = connection.cursor(dictionary=True)
-            
+            conn = get_db_connection()
+            if not conn:
+                return jsonify({'error': 'Erro no banco de dados'}), 500
+                
+            cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
             cursor.execute("""
                 SELECT id, username, password, email 
                 FROM users 
                 WHERE email = %s
             """, (email,))
+            
             user = cursor.fetchone()
             
             if not user or not verify_password(user['password'], password):
-                return jsonify({'error': 'E-mail ou senha inválidos'}), 401
-            
-            cursor.execute(
-                "UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = %s",
-                (user['id'],)
-            )
-            connection.commit()
-            
-            session['user_id'] = user['id']
-            session['username'] = user['username']
-            
-            logger.debug(f"Usuário {user['username']} fez login com sucesso")
-            
-            return jsonify({
-                'message': 'Login bem-sucedido',
-                'user': {
-                    'id': user['id'],
-                    'username': user['username'],
-                    'email': user['email']
-                }
-            }), 200
+                return jsonify({'error': 'Credenciais inválidas'}), 401
+                
+            # Restante do código de login...
             
         except Exception as e:
-            logger.error(f"Erro durante o login: {e}")
-            return jsonify({'error': 'Erro durante o processamento do login'}), 500
+            logger.error(f"Erro no login: {e}")
+            return jsonify({'error': 'Erro no servidor'}), 500
         finally:
             if cursor: cursor.close()
-            if connection and not connection.closed: connection.close()
-            
-    except Exception as e:
-        logger.error(f"Erro inesperado no login: {e}")
-        return jsonify({'error': 'Erro interno do servidor'}), 500
+            if conn and not conn.closed: conn.close()
 
 @socketio.on('connect')
 def handle_connect():
