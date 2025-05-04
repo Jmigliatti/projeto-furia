@@ -44,13 +44,13 @@ docker compose up --build
 Aqui você pode adicionar capturas de tela da aplicação em uso:
 
 ### 💬 Chat da Torcida
-![Chat da Torcida](https://github.com/Jmigliatti/telegram-bot-furia/blob/main/static/Captura%20de%20tela%202025-05-04%20185828.png?raw=true)
+![Chat da Torcida](https://github.com/Jmigliatti/projeto-furia/blob/main/static/Captura%20de%20tela%202025-05-04%20185828.png?raw=true)
 
 ### 🗓 Calendário de Jogos
-![Calendário de Jogos](https://github.com/Jmigliatti/telegram-bot-furia/blob/main/static/Captura%20de%20tela%202025-05-04%20185923.png?raw=true)
+![Calendário de Jogos](https://github.com/Jmigliatti/projeto-furia/blob/main/static/Captura%20de%20tela%202025-05-04%20185923.png?raw=true)
 
 ### 📰 Feed de Acontecimentos
-![Feed de Acontecimentos](https://github.com/Jmigliatti/telegram-bot-furia/blob/main/static/Captura%20de%20tela%202025-05-04%20185858.png?raw=true)
+![Feed de Acontecimentos](https://github.com/Jmigliatti/projeto-furia/blob/main/static/Captura%20de%20tela%202025-05-04%20185858.png?raw=true)
 
 
 ---
