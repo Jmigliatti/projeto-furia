@@ -157,7 +157,7 @@ def get_online_users():
         conn = get_db_connection()
         if not conn:
             return jsonify({"error": "Erro ao conectar ao banco de dados"}), 500
-        cursor = connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor) 
         cursor.execute("SELECT username FROM users WHERE status = 'online'")
         users = cursor.fetchall()
         cursor.close()
@@ -220,41 +220,79 @@ def register_api():
 def login():
     try:
         data = request.get_json()
+        logger.debug(f"Dados recebidos para login: {data}")
+        
         email = data.get('email')
         password = data.get('password')
         
         if not all([email, password]):
-            return jsonify({'error': 'Credenciais necessárias'}), 400
-
+            return jsonify({'error': 'E-mail e senha são obrigatórios'}), 400
+        
         conn = None
         cursor = None
         
         try:
             conn = get_db_connection()
             if not conn:
-                return jsonify({'error': 'Erro no banco de dados'}), 500
-                
+                return jsonify({'error': 'Erro ao conectar ao banco de dados'}), 500
+            
             cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+            
             cursor.execute("""
-                SELECT id, username, password, email 
+                SELECT id, username, password, email, status
                 FROM users 
                 WHERE email = %s
             """, (email,))
             
             user = cursor.fetchone()
             
-            if not user or not verify_password(user['password'], password):
-                return jsonify({'error': 'Credenciais inválidas'}), 401
+            if not user:
+                return jsonify({'error': 'E-mail não cadastrado'}), 404
                 
-            # Restante do código de login...
+            if not verify_password(user['password'], password):
+                return jsonify({'error': 'Senha incorreta'}), 401
             
+            # Atualizar último login e status
+            cursor.execute("""
+                UPDATE users 
+                SET last_login = CURRENT_TIMESTAMP,
+                    status = 'online'
+                WHERE id = %s
+            """, (user['id'],))
+            conn.commit()
+            
+            # Armazenar na sessão
+            session['user_id'] = user['id']
+            session['username'] = user['username']
+            
+            logger.debug(f"Login bem-sucedido para {user['email']}")
+            
+            return jsonify({
+                'message': 'Login realizado com sucesso',
+                'user': {
+                    'id': user['id'],
+                    'username': user['username'],
+                    'email': user['email'],
+                    'status': user['status']
+                }
+            }), 200
+            
+        except OperationalError as e:
+            logger.error(f"Erro de banco de dados: {e}")
+            return jsonify({'error': 'Erro temporário no servidor'}), 503
         except Exception as e:
-            logger.error(f"Erro no login: {e}")
-            return jsonify({'error': 'Erro no servidor'}), 500
+            logger.error(f"Erro inesperado: {e}")
+            return jsonify({'error': 'Erro no processamento do login'}), 500
         finally:
-            if cursor: cursor.close()
-            if conn and not conn.closed: conn.close()
-
+            if cursor:
+                cursor.close()
+            if conn and not conn.closed:
+                conn.close()
+                
+    except Exception as e:
+        logger.error(f"Erro na requisição: {e}")
+        return jsonify({'error': 'Requisição inválida'}), 400
+    
 @socketio.on('connect')
 def handle_connect():
     logger.debug('Cliente conectado')
