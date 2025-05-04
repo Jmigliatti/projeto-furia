@@ -52,6 +52,9 @@ Aqui você pode adicionar capturas de tela da aplicação em uso:
 ### 📰 Feed de Acontecimentos
 ![Feed de Acontecimentos](https://github.com/Jmigliatti/projeto-furia/blob/main/webapp/static/Captura%20de%20tela%202025-05-04%20185858.png)
 
+### Card do Feed
+![Card do Feed](https://github.com/Jmigliatti/projeto-furia/blob/main/webapp/static/Captura%20de%20tela%202025-05-04%20191345.png)
+
 
 ---
 
