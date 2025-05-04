@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FURIA CS - Feed</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #FFFFFF;
+            --secondary-color: #1A1A1A;
+            --accent-color: #333333;
+            --text-color: #FFFFFF;
+            --text-secondary: #CCCCCC;
+            --background-color: #000000;
+            --card-background: #1A1A1A;
+            --hover-color: #2A2A2A;
+            --success-color: #4CAF50;
+            --error-color: #FF5252;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            background-image: url('/static/Furia_Esports_logo.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header img {
+            width: 100px;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .feed-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .post-card {
+            background: var(--card-background);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--accent-color);
+            transition: transform 0.3s ease;
+        }
+
+        .post-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .post-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        video.post-image {
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        .post-content {
+            padding: 15px;
+        }
+
+        .post-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .post-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .post-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            padding-top: 10px;
+            border-top: 1px solid var(--accent-color);
+        }
+
+        .post-date {
+            display: flex;
+            align-items: center;
+        }
+
+        .post-date i {
+            margin-right: 5px;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .post-action {
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .post-action:hover {
+            color: var(--primary-color);
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: var(--background-color);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-button:hover {
+            background-color: var(--text-secondary);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px auto;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .feed-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Estilos do Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: var(--card-background);
+            margin: 5% auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 12px;
+            border: 1px solid var(--accent-color);
+        }
+
+        .modal-image {
+            width: 100%;
+            max-height: 500px;
+            object-fit: contain;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .modal-description {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .modal-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid var(--accent-color);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: var(--primary-color);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 20px;
+        }
+
+        .modal-action {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .modal-action:hover {
+            color: var(--primary-color);
+        }
+
+        .modal-action i {
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                margin: 10% auto;
+                width: 95%;
+            }
+
+            .modal-image {
+                max-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="window.location.href='/chat'">
+        <i class="fas fa-arrow-left"></i>
+        Voltar
+    </button>
+
+    <div class="container">
+        <div class="header">
+            <img src="/static/Furia_Esports_logo.png" alt="Furia Logo">
+            <h1>FURIA CS - Notícias</h1>
+            <p>Fique por dentro das últimas jogadas e resultados da FURIA no CS:GO</p>
+        </div>
+
+        <div class="feed-grid">
+            <!-- Novo post com vídeo -->
+            <div class="post-card" onclick="openModal(this)">
+                <video class="post-image" preload="metadata">
+                    <source src="/static/ssstwitter.com_1746187570404.mp4#t=0.1" type="video/mp4">
+                    Seu navegador não suporta o elemento de vídeo.
+                </video>
+                <div class="post-content">
+                    <h2 class="post-title">Quando a gente coloca esse X1 pra rolar???</h2>
+                    <p class="post-description">conexão #FURIACS e #FURIAFC na #KingsLeagueBrazil</p>
+                    <div class="post-meta">
+                        <div class="post-date">
+                            <i class="far fa-calendar"></i>
+                            <span>02/05/2025</span>
+                        </div>
+                        <div class="post-actions">
+                            <span class="post-action">
+                                <i class="far fa-heart"></i>
+                                <span>156</span>
+                            </span>
+                            <span class="post-action">
+                                <i class="far fa-comment"></i>
+                                <span>42</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exemplo de post -->
+            <div class="post-card" onclick="openModal(this)">
+                <img src="/static/Gp4xTHOXIAM7b9J.jpg" alt="Ол келді! Ele chegou!" class="post-image">
+                <div class="post-content">
+                    <h2 class="post-title">Ол келді! Ele chegou!</h2>
+                    <p class="post-description">@tvoy_molodoy de visto aprovado e junto da #FURIACS!</p>
+                    <div class="post-meta">
+                        <div class="post-date">
+                            <i class="far fa-calendar"></i>
+                            <span>01/05/2025</span>
+                        </div>
+                        <div class="post-actions">
+                            <span class="post-action">
+                                <i class="far fa-heart"></i>
+                                <span>245</span>
+                            </span>
+                            <span class="post-action">
+                                <i class="far fa-comment"></i>
+                                <span>32</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="post-card" onclick="openModal(this)">
+                <video class="post-image" preload="metadata">
+                    <source src="/static/ssstwitter.com_1746330504751.mp4" type="video/mp4">
+                    Seu navegador não suporta o elemento de vídeo.
+                </video>
+                <div class="post-content">
+                    <h2 class="post-title">A SUA #FURIACS Fem segue invicta na #ESLImpact</h2>
+                    <p class="post-description">Vencemos hoje vs Messitas e seguimos 6-0 na competição! BORA!!!!!</p>
+                    <div class="post-meta">
+                        <div class="post-date">
+                            <i class="far fa-calendar"></i>
+                            <span>02/04/2025</span>
+                        </div>
+                        <div class="post-actions">
+                            <span class="post-action">
+                                <i class="far fa-heart"></i>
+                                <span>156</span>
+                            </span>
+                            <span class="post-action">
+                                <i class="far fa-comment"></i>
+                                <span>42</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="post-card" onclick="openModal(this)">
+                <video class="post-image" preload="metadata">
+                    <source src="/static/ssstwitter.com_1746330457631.mp4" type="video/mp4">
+                    Seu navegador não suporta o elemento de vídeo.
+                </video>
+                <div class="post-content">
+                    <h2 class="post-title">GGWP #FURIACS</h2>
+                    <p class="post-description">Olha pra mim kkkkkkkk</p>
+                    <div class="post-meta">
+                        <div class="post-date">
+                            <i class="far fa-calendar"></i>
+                            <span>04/03/2025</span>
+                        </div>
+                        <div class="post-actions">
+                            <span class="post-action">
+                                <i class="far fa-heart"></i>
+                                <span>156</span>
+                            </span>
+                            <span class="post-action">
+                                <i class="far fa-comment"></i>
+                                <span>42</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="postModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <div class="modal-image"></div>
+            <h2 id="modalTitle" class="modal-title"></h2>
+            <p id="modalDescription" class="modal-description"></p>
+            <div class="modal-meta">
+                <div class="post-date">
+                    <i class="far fa-calendar"></i>
+                    <span id="modalDate"></span>
+                </div>
+                <div class="modal-actions">
+                    <span class="modal-action">
+                        <i class="far fa-heart"></i>
+                        <span id="modalLikes"></span>
+                    </span>
+                    <span class="modal-action">
+                        <i class="far fa-comment"></i>
+                        <span id="modalComments"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Função para configurar thumbnails dos vídeos
+        function setupVideoThumbnails() {
+            const videos = document.querySelectorAll('video.post-image');
+            videos.forEach(video => {
+                // Pausar o vídeo no primeiro frame
+                video.addEventListener('loadedmetadata', function() {
+                    this.currentTime = 0.1;
+                    this.pause();
+                });
+            });
+        }
+
+        // Chamar a função quando a página carregar
+        document.addEventListener('DOMContentLoaded', setupVideoThumbnails);
+
+        // Função para abrir o modal
+        function openModal(postCard) {
+            const modal = document.getElementById('postModal');
+            const modalImage = document.querySelector('.modal-image');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalDescription = document.getElementById('modalDescription');
+            const modalDate = document.getElementById('modalDate');
+            const modalLikes = document.getElementById('modalLikes');
+            const modalComments = document.getElementById('modalComments');
+
+            // Limpar conteúdo anterior
+            modalImage.innerHTML = '';
+
+            // Verificar se é vídeo ou imagem
+            const mediaElement = postCard.querySelector('.post-image');
+            if (mediaElement.tagName === 'VIDEO') {
+                const video = document.createElement('video');
+                video.controls = true;
+                video.className = 'modal-image';
+                const source = document.createElement('source');
+                source.src = mediaElement.querySelector('source').src;
+                source.type = 'video/mp4';
+                video.appendChild(source);
+                modalImage.appendChild(video);
+            } else {
+                modalImage.src = mediaElement.src;
+            }
+
+            // Preencher o modal com os dados do post
+            modalTitle.textContent = postCard.querySelector('.post-title').textContent;
+            modalDescription.textContent = postCard.querySelector('.post-description').textContent;
+            modalDate.textContent = postCard.querySelector('.post-date span').textContent;
+            modalLikes.textContent = postCard.querySelector('.post-action:nth-child(1) span').textContent;
+            modalComments.textContent = postCard.querySelector('.post-action:nth-child(2) span').textContent;
+
+            // Exibir o modal
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Impede rolagem do body
+        }
+
+        // Função para fechar o modal
+        function closeModal() {
+            const modal = document.getElementById('postModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto'; // Restaura rolagem do body
+        }
+
+        // Fechar o modal ao clicar fora dele
+        window.onclick = function(event) {
+            const modal = document.getElementById('postModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        // Fechar o modal com a tecla ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

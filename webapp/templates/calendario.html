@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FURIA CS - Calendário</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #FFFFFF;
+            --secondary-color: #1A1A1A;
+            --accent-color: #333333;
+            --text-color: #FFFFFF;
+            --text-secondary: #CCCCCC;
+            --background-color: #000000;
+            --card-background: #1A1A1A;
+            --hover-color: #2A2A2A;
+            --success-color: #4CAF50;
+            --error-color: #FF5252;
+            --upcoming-color: #FFD700;
+            --live-color: #FF0000;
+            --completed-color: #4CAF50;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            background-image: url('/static/Furia_Esports_logo.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header img {
+            width: 100px;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .calendar {
+            background: var(--card-background);
+            border-radius: 12px;
+            border: 1px solid var(--accent-color);
+            overflow: hidden;
+        }
+
+        .month-header {
+            background: var(--accent-color);
+            padding: 15px;
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+
+        .match-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .watch-button {
+            background-color: #9146FF;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .watch-button:hover {
+            background-color: #772ce8;
+        }
+
+
+        .match-item {
+            padding: 20px;
+            border-bottom: 1px solid var(--accent-color);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .match-item:last-child {
+            border-bottom: none;
+        }
+
+        .match-date {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .match-date i {
+            color: var(--primary-color);
+        }
+
+        .match-teams {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .team {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .team-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .team-name {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+        }
+
+        .vs {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .match-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .tournament {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status.upcoming {
+            background-color: var(--upcoming-color);
+            color: var(--background-color);
+        }
+
+        .status.live {
+            background-color: var(--live-color);
+            color: var(--primary-color);
+        }
+
+        .status.completed {
+            background-color: var(--completed-color);
+            color: var(--background-color);
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: var(--background-color);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-button:hover {
+            background-color: var(--text-secondary);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px auto;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .match-teams {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .vs {
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="window.location.href='/chat'">
+        <i class="fas fa-arrow-left"></i>
+        Voltar
+    </button>
+
+    <div class="container">
+        <div class="header">
+            <img src="/static/Furia_Esports_logo.png" alt="Furia Logo">
+            <h1>FURIA CS - Calendário</h1>
+            <p>Acompanhe todos os jogos da FURIA no CS:GO</p>
+        </div>
+
+        <div class="calendar">
+            <div class="month-header">
+                Maio 2024
+            </div>
+            <ul class="match-list">
+                <li class="match-item">
+                    <div class="match-date">
+                        <i class="far fa-calendar"></i>
+                        <span>05/05/2024 - 16:00</span>
+                    </div>
+                    <div class="match-teams">
+                        <div class="team">
+                            <img src="/static/Furia_Esports_logo.png" alt="FURIA" class="team-logo">
+                            <span class="team-name">FURIA</span>
+                        </div>
+                        <span class="vs">vs</span>
+                        <div class="team">
+                            <img src="/static/Teamliquid_logo_blue.png" alt="Team Liquid" class="team-logo">
+                            <span class="team-name">Team Liquid</span>
+                        </div>
+                    </div>
+                    <div class="match-info">
+                        <div class="tournament">
+                            <i class="fas fa-trophy"></i>
+                            <span>ESL Pro League Season 19</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="status live">Ao Vivo</span>
+                            <a href="https://www.twitch.tv/eslcs" target="_blank" class="watch-button">Assistir</a>
+                        </div>
+                    </div>
+                </li>
+
+                <li class="match-item">
+                    <div class="match-date">
+                        <i class="far fa-calendar"></i>
+                        <span>10/05/2024 - 19:00</span>
+                    </div>
+                    <div class="match-teams">
+                        <div class="team">
+                            <img src="/static/Furia_Esports_logo.png" alt="FURIA" class="team-logo">
+                            <span class="team-name">FURIA</span>
+                        </div>
+                        <span class="vs">vs</span>
+                        <div class="team">
+                            <img src="/static/faze-logo-png-favpng-10kHbKiyZj9jKDH4A0Q8hCjzY.jpg" alt="FaZe Clan" class="team-logo">
+                            <span class="team-name">FaZe Clan</span>
+                        </div>
+                    </div>
+                    <div class="match-info">
+                        <div class="tournament">
+                            <i class="fas fa-trophy"></i>
+                            <span>ESL Pro League Season 19</span>
+                        </div>
+                        <span class="status upcoming">Próximo</span>
+                    </div>
+                </li>
+
+                <li class="match-item">
+                    <div class="match-date">
+                        <i class="far fa-calendar"></i>
+                        <span>15/05/2024 - 15:00</span>
+                    </div>
+                    <div class="match-teams">
+                        <div class="team">
+                            <img src="/static/Furia_Esports_logo.png" alt="FURIA" class="team-logo">
+                            <span class="team-name">FURIA</span>
+                        </div>
+                        <span class="vs">vs</span>
+                        <div class="team">
+                            <img src="/static/Natus_Vincere_logo.png" alt="Natus Vincere" class="team-logo">
+                            <span class="team-name">Natus Vincere</span>
+                        </div>
+                    </div>
+                    <div class="match-info">
+                        <div class="tournament">
+                            <i class="fas fa-trophy"></i>
+                            <span>ESL Pro League Season 19</span>
+                        </div>
+                        <span class="status upcoming">Próximo</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html> 
