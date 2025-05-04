@@ -45,7 +45,7 @@ Aqui você pode adicionar capturas de tela da aplicação em uso:
 
 | Chat da Torcida | Calendário de Jogos | Feed de Acontecimentos |
 |-----------------|---------------------|-------------------------|
-| ![Chat](static/img/chat.png) | ![Calendário](static/img/calendario.png) | ![Feed](static/img/feed.png) |
+| ![Chat](webapp/static/Captura de tela 2025-05-04 185828.png) | ![Calendário](webapp/static/Captura de tela 2025-05-04 185923.png) | ![Feed](webapp/static/Captura de tela 2025-05-04 185858.png) |
 
 > 💡 Dica: Coloque suas imagens na pasta `static/img/` ou altere os caminhos conforme necessário.
 
