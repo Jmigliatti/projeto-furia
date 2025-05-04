@@ -1,5 +1,5 @@
 from flask import Flask, send_from_directory, redirect, session, request, jsonify, render_template, send_file
-from flask_socketio import SocketIO, emit, join_room, leave_room, Server
+from flask_socketio import SocketIO, emit, join_room, leave_room
 import os
 import eventlet
 from datetime import datetime
