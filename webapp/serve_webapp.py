@@ -38,19 +38,22 @@ def get_db_connection():
     for attempt in range(retries):
         try:
             logger.debug(f"Tentativa {attempt + 1} de {retries} para conectar ao PostgreSQL")
-            logger.debug(f"Configuração: { {k:v for k,v in DB_CONFIG.items() if k != 'password'} }")
-            
-            connection = psycopg2.connect(**DB_CONFIG)
+            connection = psycopg2.connect(
+                host=os.getenv('DB_HOST'),
+                user=os.getenv('DB_USER'),
+                password=os.getenv('DB_PASSWORD'),
+                dbname=os.getenv('DB_NAME'),
+                port=os.getenv('DB_PORT', '5432'),
+                connect_timeout=30,
+                sslmode='require'  # Obrigatório no Render
+            )
             logger.debug("Conexão com PostgreSQL estabelecida com sucesso")
             return connection
         except OperationalError as e:
             logger.error(f"Erro ao conectar ao PostgreSQL (tentativa {attempt + 1}): {e}")
             if attempt < retries - 1:
-                logger.debug(f"Aguardando {delay} segundos antes da próxima tentativa...")
                 time.sleep(delay)
-            else:
-                logger.error("Todas as tentativas de conexão falharam")
-                return None
+    return None
 
 def init_db():
     try:
@@ -220,7 +223,7 @@ def register_api():
             logger.error(f"Erro ao registrar usuário: {e}")
             return jsonify({'error': 'Erro ao registrar usuário'}), 500
         finally:
-            if connection.is_connected():
+            if connection and not connection.closed:
                 cursor.close()
                 connection.close()
     except Exception as e:
@@ -283,7 +286,7 @@ def login():
             logger.error(f"Erro ao fazer login: {e}")
             return jsonify({'error': 'Erro ao fazer login'}), 500
         finally:
-            if connection.is_connected():
+            if connection and not connection.closed:
                 cursor.close()
                 connection.close()
     except Exception as e:
@@ -350,7 +353,7 @@ def handle_message(data):
             except Error as e:
                 logger.error(f"Erro ao salvar mensagem: {e}")
             finally:
-                if connection.is_connected():
+                if connection and not connection.closed:
                     cursor.close()
                     connection.close()
         
