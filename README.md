@@ -36,3 +36,21 @@ Você pode testar a aplicação localmente com Docker:
 git clone https://github.com/Jmigliatti/telegram-bot-furia.git
 cd telegram-bot-furia
 docker compose up --build
+
+## 📸 Galeria
+
+Aqui você pode adicionar capturas de tela da aplicação em uso:
+
+| Chat da Torcida | Calendário de Jogos | Feed de Acontecimentos |
+|-----------------|---------------------|-------------------------|
+| ![Chat](static/img/chat.png) | ![Calendário](static/img/calendario.png) | ![Feed](static/img/feed.png) |
+
+> 💡 Dica: Coloque suas imagens na pasta `static/img/` ou altere os caminhos conforme necessário.
+
+---
+
+## 🎥 Demonstração em vídeo
+
+Assista à apresentação completa do projeto:
+
+📺 [Clique aqui para ver o vídeo no YouTube](https://www.youtube.com/watch?v=SEU_LINK_AQUI)
