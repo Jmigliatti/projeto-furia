@@ -2,7 +2,8 @@ flask
 flask-socketio
 python-socketio
 eventlet
-mysql-connector-python==8.0.33
+psycopg2-binary==2.9.3
+python-dotenv==0.19.0
 python-dotenv
 cryptography
 bcrypt

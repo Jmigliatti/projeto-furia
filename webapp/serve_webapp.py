@@ -3,8 +3,8 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 import os
 import eventlet
 from datetime import datetime
-import mysql.connector
-from mysql.connector import Error
+import psycopg2
+from psycopg2 import OperationalError, sql
 import bcrypt
 from dotenv import load_dotenv
 import logging
@@ -21,31 +21,30 @@ app = Flask(__name__, static_folder="static", template_folder="templates")
 app.config['SECRET_KEY'] = 'furia_chat_secret_key'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# Configurações do MySQL (usando apenas variáveis de ambiente)
-MYSQL_CONFIG = {
-    'host': 'mysql',  # Nome da variável do Railway
-    'user': os.getenv('MYSQLUSER'),  # 'root' no Railway
-    'password': os.getenv('MYSQLPASSWORD'),  # Senha automática do Railway
-    'database': os.getenv('MYSQLDATABASE'),  # 'railway' por padrão
-    'port': int(os.getenv('MYSQLPORT', '3306')),  # Porta do Railway
-    'auth_plugin': 'mysql_native_password',
-    'connect_timeout': 30
+# Substitua MYSQL_CONFIG por:
+DB_CONFIG = {
+    'host': os.getenv('DB_HOST'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'database': os.getenv('DB_NAME'),
+    'port': os.getenv('DB_PORT', '5432'),  # Porta padrão do PostgreSQL
+    'sslmode': 'require'  # Obrigatório no Render
 }
 
 def get_db_connection():
-    retries = MYSQL_CONFIG.pop('retries', 3)
-    delay = MYSQL_CONFIG.pop('delay', 5)
+    retries = 3
+    delay = 5
     
     for attempt in range(retries):
         try:
-            logger.debug(f"Tentativa {attempt + 1} de {retries} para conectar ao MySQL")
-            logger.debug(f"Configuração: {MYSQL_CONFIG}")
+            logger.debug(f"Tentativa {attempt + 1} de {retries} para conectar ao PostgreSQL")
+            logger.debug(f"Configuração: { {k:v for k,v in DB_CONFIG.items() if k != 'password'} }")
             
-            connection = mysql.connector.connect(**MYSQL_CONFIG)
-            logger.debug("Conexão com MySQL estabelecida com sucesso")
+            connection = psycopg2.connect(**DB_CONFIG)
+            logger.debug("Conexão com PostgreSQL estabelecida com sucesso")
             return connection
-        except Error as e:
-            logger.error(f"Erro ao conectar ao MySQL (tentativa {attempt + 1}): {e}")
+        except OperationalError as e:
+            logger.error(f"Erro ao conectar ao PostgreSQL (tentativa {attempt + 1}): {e}")
             if attempt < retries - 1:
                 logger.debug(f"Aguardando {delay} segundos antes da próxima tentativa...")
                 time.sleep(delay)
@@ -60,23 +59,23 @@ def init_db():
             cursor = connection.cursor()
             logger.debug("Inicializando banco de dados...")
             
-            # Não crie o banco manualmente (usará o do Railway)
+            # Criação das tabelas (sintaxe PostgreSQL)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS users (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    id SERIAL PRIMARY KEY,
                     username VARCHAR(50) NOT NULL,
                     email VARCHAR(100) NOT NULL UNIQUE,
                     password VARCHAR(255) NOT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_login TIMESTAMP NULL,
                     is_active BOOLEAN DEFAULT TRUE,
-                    status VARCHAR(20) DEFAULT 'offline'  # Adicionei o campo status
+                    status VARCHAR(20) DEFAULT 'offline'
                 )
             """)
             
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS chat_messages (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    id SERIAL PRIMARY KEY,
                     user_id INT NOT NULL,
                     message TEXT NOT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -87,7 +86,7 @@ def init_db():
             
             connection.commit()
             logger.debug("Tabelas criadas com sucesso")
-    except Error as e:
+    except OperationalError as e:
         logger.error(f"Erro ao inicializar banco de dados: {e}")
 
 def encrypt_password(password):
