@@ -7,3 +7,4 @@ python-dotenv
 cryptography
 bcrypt
 pydantic<2.0
+eventlet

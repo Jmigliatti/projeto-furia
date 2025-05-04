@@ -1,6 +1,7 @@
 from flask import Flask, send_from_directory, redirect, session, request, jsonify, render_template, send_file
-from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_socketio import SocketIO, emit, join_room, leave_room, Server
 import os
+import eventlet
 from datetime import datetime
 import mysql.connector
 from mysql.connector import Error
@@ -367,17 +368,8 @@ def handle_message(data):
         emit('new_message', message_data, broadcast=True)
 
 if __name__ == '__main__':
-    print("Starting Flask app...")
-    print("Current directory:", os.getcwd())
-    print("Files in current directory:", os.listdir("."))
+
+    eventlet.monkey_patch()
     
-    # Listar todas as rotas registradas
-    print("\nRotas registradas:")
-    for rule in app.url_map.iter_rules():
-        print(f"Rota: {rule.rule}, Métodos: {rule.methods}")
-    
-    # Inicializar banco de dados
-    init_db()
-    
-    socketio.run(app, host='0.0.0.0', port=8080, debug=True)
+    socketio.run(app, host='0.0.0.0', port=int(os.getenv("PORT", 5000)))
 
