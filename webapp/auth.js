@@ -45,7 +45,7 @@ async function handleAuthCallback(provider, code) {
 
         if (response.ok) {
             const data = await response.json();
-            // ARMAZENAMENTO COMPLETO DOS DADOS (modificação importante)
+            // ARMAZENAMENTO COMPLETO DOS DADOS
             localStorage.setItem('authToken', data.access_token);
             localStorage.setItem('userData', JSON.stringify({
                 id: data.user.id,
@@ -102,7 +102,7 @@ async function loginWithEmailAndPassword(email, password) {
         const data = await response.json();
 
         if (response.ok) {
-            // ARMAZENE TODOS OS DADOS NECESSÁRIOS (modificação importante)
+            // ARMAZENAMENTO COMPLETO DOS DADOS
             localStorage.setItem('userData', JSON.stringify({
                 id: data.user.id,
                 name: data.user.username,
