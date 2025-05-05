@@ -22,7 +22,7 @@ app = Flask(__name__, static_folder="static", template_folder="templates")
 app.config['SECRET_KEY'] = 'furia_chat_secret_key'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# Substitua MYSQL_CONFIG por:
+# Configurações do PostgreSQL extraídas do .env
 DB_CONFIG = {
     'host': os.getenv('DB_HOST'),
     'user': os.getenv('DB_USER'),
@@ -32,6 +32,7 @@ DB_CONFIG = {
     'sslmode': 'require'
 }
 
+# Função auxiliar para conectar ao banco de dados
 def get_db_connection():
     try:
         conn = psycopg2.connect(**DB_CONFIG)
@@ -41,6 +42,7 @@ def get_db_connection():
         logger.error(f"Erro ao conectar: {e}")
         return None
 
+# Inicializa o banco de dados criando as tabelas, se necessário
 def init_db():
     try:
         connection = get_db_connection()
@@ -78,10 +80,12 @@ def init_db():
     except OperationalError as e:
         logger.error(f"Erro ao inicializar banco de dados: {e}")
 
+# Criptografa uma senha com bcrypt
 def encrypt_password(password):
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(password.encode(), salt).decode()
 
+# Verifica se uma senha corresponde ao hash armazenado
 def verify_password(hashed_password, password):
     try:
         # O hash no banco de dados já inclui o salt, então não precisamos gerar um novo
@@ -97,25 +101,30 @@ online_users = {}
 # Dicionário para armazenar mensagens
 chat_messages = []
 
+# Rota principal para renderizar a página de login
 @app.route('/')
 def index():
     return render_template('index.html')
 
+# Rota para renderizar a página de registro
 @app.route('/register')
 def register():
     logger.debug("Acessando rota /register")
     return render_template('register.html')
 
+# Rota para renderizar a página de feed
 @app.route('/feed')
 def feed():
     logger.debug("Acessando rota /feed")
     return render_template('feed.html')
 
+# Rota para renderizar a página de calendário
 @app.route('/calendario')
 def calendario():
     logger.debug("Acessando rota /calendario")
     return render_template('calendario.html')
 
+# Rota para renderizar a página de chat
 @app.route('/chat')
 def chat_page():
     logger.debug("Acessando rota /chat")
@@ -125,12 +134,14 @@ def chat_page():
         logger.error(f"Erro ao servir chat.html: {e}")
         return str(e), 500
     
+# Rota para atualizar o status do usuário
 @app.route("/api/update-status", methods=["POST"])
 def update_status():
     data = request.get_json()
     user_email = data.get("email")
     status = data.get("status")
 
+    # Verifica se os dados são válidos
     if not user_email or status not in ["online", "offline"]:
         return jsonify({"error": "Dados inválidos"}), 400
 
@@ -150,7 +161,7 @@ def update_status():
         app.logger.error(f"Erro ao atualizar status: {e}")
         return jsonify({"error": "Erro interno no servidor"}), 500
 
-    
+# Rota para obter usuários online
 @app.route("/api/online-users", methods=["GET"])
 def get_online_users():
     try:
@@ -167,6 +178,7 @@ def get_online_users():
         app.logger.error(f"Erro ao obter usuários online: {e}")
         return jsonify({"error": "Erro ao obter usuários online"}), 500
 
+# Rota para registrar um novo usuário
 @app.route('/api/register', methods=['POST'])
 def register_api():
     try:
@@ -216,39 +228,47 @@ def register_api():
         logger.error(f"Erro inesperado no registro: {e}")
         return jsonify({'error': 'Erro interno do servidor'}), 500
 
+# Rota para fazer login
 @app.route('/api/login', methods=['POST'])
 def login():
     try:
+        # Recebe os dados do login
         data = request.get_json()
         logger.debug(f"Dados recebidos para login: {data}")
         
         email = data.get('email')
         password = data.get('password')
         
+        # Verifica se os dados são válidos
         if not all([email, password]):
             return jsonify({'error': 'E-mail e senha são obrigatórios'}), 400
         
         conn = None
         cursor = None
         
+        # Tenta conectar ao banco de dados
         try:
             conn = get_db_connection()
             if not conn:
                 return jsonify({'error': 'Erro ao conectar ao banco de dados'}), 500
             
+            # Cria um cursor para executar as queries
             cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
             
+            # Executa a query para buscar o usuário pelo e-mail
             cursor.execute("""
                 SELECT id, username, password, email, status
                 FROM users 
                 WHERE email = %s
             """, (email,))
             
+            # Obtém o usuário encontrado
             user = cursor.fetchone()
             
             if not user:
                 return jsonify({'error': 'E-mail não cadastrado'}), 404
                 
+            # Verifica se a senha fornecida corresponde ao hash armazenado
             if not verify_password(user['password'], password):
                 return jsonify({'error': 'Senha incorreta'}), 401
             
@@ -292,11 +312,13 @@ def login():
     except Exception as e:
         logger.error(f"Erro na requisição: {e}")
         return jsonify({'error': 'Requisição inválida'}), 400
-    
+
+# Evento de conexão do cliente
 @socketio.on('connect')
 def handle_connect():
     logger.debug('Cliente conectado')
 
+# Evento de desconexão do cliente
 @socketio.on('disconnect')
 def handle_disconnect():
     user_id = session.get('user_id')
@@ -304,6 +326,7 @@ def handle_disconnect():
         del online_users[user_id]
         emit('user_left', {'user_id': user_id}, broadcast=True)
 
+# Evento de login do cliente
 @socketio.on('login')
 def handle_login(data):
     username = data.get('username')
@@ -317,6 +340,7 @@ def handle_login(data):
         'status': 'online'
     }
     
+    # Envia uma mensagem para o cliente indicando que ele entrou na sala
     emit('user_joined', {
         'user_id': user_id,
         'username': username
@@ -326,6 +350,7 @@ def handle_login(data):
     emit('online_users', list(online_users.values()))
     emit('chat_history', chat_messages)
 
+# Evento para enviar uma mensagem
 @socketio.on('send_message')
 def handle_message(data):
     message = data.get('message')
