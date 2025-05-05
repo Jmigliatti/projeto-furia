@@ -29,6 +29,25 @@ O sistema é composto por:
 
 ---
 
+## 🧩 Estrutura do Projeto
+
+- **Backend (`serve_webapp.py`)**  
+  Toda a lógica de backend foi implementada com **Flask**, incluindo:
+  - Configuração das **rotas HTTP**
+  - Manipulação de **eventos WebSocket** com **Flask-SocketIO**
+  - Comunicação com o **banco de dados PostgreSQL**
+  - Camadas de autenticação, registro e controle de status dos usuários
+
+- **Frontend (`/templates` e `/static`)**  
+  A interface do usuário foi desenvolvida com:
+  - **HTML + CSS** (na pasta `/templates`) para a estrutura das páginas
+  -  e arquivos .png (na pasta `/static`) para o conteúdo visual da aplicação
+
+- **Containerização (`Dockerfile`)**  
+  O projeto inclui um `Dockerfile` configurado para criar um container compatível com o **Render**, a plataforma usada para **hospedar a aplicação online**.
+  
+---
+
 ## 🧪 Execução local
 
 Você pode testar a aplicação localmente com Docker:
@@ -38,6 +57,7 @@ git clone https://github.com/Jmigliatti/telegram-bot-furia.git
 cd telegram-bot-furia
 docker compose up --build
 ```
+---
 
 ## 📸 Galeria
 
